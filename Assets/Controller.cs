@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
 [RequireComponent(typeof(CharacterController))]
 public class Controller : MonoBehaviour
 {
@@ -9,15 +12,26 @@ public class Controller : MonoBehaviour
     private GameObject cameraFPS;
     private Vector3 moveDirection = Vector3.zero;
     private CharacterController controller;
-    private float rotacaoX = 0;
+    private float rotacaoX = 0.0f;
     private float rotacaoY = 0.0f;
+
+    public Rigidbody projectile;
+    public float speedshooter = 100;
+
+    public AudioSource tiro;
 
     void Start()
     {
+        //som do tiro
+        //tiro = GetComponents<AudioSource>()[0];
+
         cameraFPS = GetComponentInChildren(typeof(Camera)).transform.gameObject;
         cameraFPS.transform.localPosition = new Vector3(0,1,0);
         cameraFPS.transform.localRotation = Quaternion.identity;
         controller = GetComponent<CharacterController>();
+
+        // esconder mouse
+        Cursor.visible = false;
 
     }
 
@@ -56,15 +70,46 @@ public class Controller : MonoBehaviour
                 moveDirection.y = 8.0f;
             }
 
-
-
+        if (Input.GetButtonDown("Fire1")) {
+                Rigidbody hitPlayer;
+                hitPlayer = Instantiate(projectile, cameraFPS.transform.position, cameraFPS.transform.rotation) as Rigidbody;
+                hitPlayer.velocity = cameraFPS.transform.TransformDirection(Vector3.forward * speedshooter);
+                //tiro.Play();
+            }
         }
+
         //faz o jogador ir pra baixo (gravidade)
         moveDirection.y -= 20.0f * Time.deltaTime;
 
         //faz o movimento
         controller.Move(moveDirection * Time.deltaTime);
 
+        cameraPrimeiraPessoa();
+    }
 
+
+    // controle do mouse
+    void cameraPrimeiraPessoa(){
+        rotacaoX += Input.GetAxis("Mouse X") * 10.0f;
+        rotacaoY += Input.GetAxis("Mouse Y") * 10.0f;
+
+        rotacaoX = clampAngleFPS(rotacaoX, -360, 360);
+        rotacaoY = clampAngleFPS(rotacaoY,-80, 80);
+
+        Quaternion xq = Quaternion.AngleAxis(rotacaoX, Vector3.up);
+        Quaternion yq = Quaternion.AngleAxis(rotacaoY, -Vector3.right);
+        Quaternion q = Quaternion.identity * xq * yq;
+
+        cameraFPS.transform.localRotation = Quaternion.Lerp(cameraFPS.transform.localRotation, q, Time.deltaTime * 10.0f);
+    }
+
+    float clampAngleFPS(float angulo, float min, float max){
+        if(angulo < -360){
+            angulo += 360;
+        }
+        if(angulo > 360){
+            angulo -= 360;
+        }
+        return Mathf.Clamp(angulo, min, max);
     }
 }

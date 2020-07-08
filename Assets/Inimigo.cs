@@ -13,27 +13,37 @@ public class Inimigo : MonoBehaviour
     public GameObject jogador;
     private static bool primeiro = true;
 
+    private static AudioSource somAcerta;
+    private static AudioSource somMorre;
+    private static AudioSource playerDeath;
+
     void Start()
     {
-        target2 = new Vector3(Random.Range(-10,10), 0, Random.Range(-10,10));
+        somAcerta = GetComponents<AudioSource>()[0];
+        somMorre = GetComponents<AudioSource>()[1];
+        playerDeath = GetComponents<AudioSource>()[2];
+
+        target2 = new Vector3(Random.Range(-10,10), 3.62f, Random.Range(-10,10));
 
         if(primeiro){
             primeiro = false;
             for(int i=0; i<10; i++){
-                Vector3 posicao = new Vector3(Random.Range(-10,10),0,Random.Range(-10,10));
+
+                Vector3 posicao = new Vector3(Random.Range(-22,-6),3.62f,Random.Range(-3,2));
                 GameObject outro = Instantiate(gameObject, posicao, transform.rotation) as GameObject;
+                Debug.Log("Novo");
             }
         }
     }
    
     void Update()
     {
-        target2 = new Vector3(jogador.transform.position.x,0, jogador.transform.position.z);
+        target2 = new Vector3(jogador.transform.position.x,3.62f, jogador.transform.position.z);
 
         // salva a posição anterior caso a colisão aconteça
         positionOld = transform.position;
 
-        // se estiver mais de 10 de deistancia do jogador, segue aleatoriamente
+        // se estiver mais de 10 de de istancia do jogador, segue aleatoriamente
         Vector3 target;
         if(Vector3.Distance(transform.position, target2) > 10){
             target = target1;  // aleatorio
@@ -45,7 +55,7 @@ public class Inimigo : MonoBehaviour
         // verifica se o inimigo encontrou seu target
         float dist = Vector3.Distance(transform.position, target);
         if(dist <= 0.1){
-            target1 = new Vector3 (Random.Range(-10,10),0,Random.Range(-10,10));
+            target1 = new Vector3 (Random.Range(-10,10),3.62f,Random.Range(-10,10));
         }
 
         // move o inimigo
@@ -56,12 +66,21 @@ public class Inimigo : MonoBehaviour
     void OnCollisionEnter(Collision collision){
         // detecta colisão
         transform.position = positionOld;
-        target1 = new Vector3 (Random.Range(-10,10),0,Random.Range(-10,10));
+        target1 = new Vector3 (Random.Range(-10,10),3.62f,Random.Range(-10,10));
         Debug.Log("Colidiu!");
+        if(collision.gameObject.CompareTag("jogador")){
+            somAcerta.Play();
+            Controller.vidas--;
+            if(Controller.vidas == 0){
+                playerDeath.Play();
+                SceneManager.LoadScene("Game Over");
+            }
+        }
     }
 
     void OnTriggerEnter(Collider other){
         if(other.gameObject.CompareTag("tiro")){
+            somMorre.Play();
             Destroy(gameObject);
         }
     }

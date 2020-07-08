@@ -5,25 +5,28 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(CharacterController))]
-public class Controller : MonoBehaviour
-{
 
+public class Controller : MonoBehaviour
+
+{
     public float speed = 6.0f;
     private GameObject cameraFPS;
     private Vector3 moveDirection = Vector3.zero;
     private CharacterController controller;
     private float rotacaoX = 0.0f;
     private float rotacaoY = 0.0f;
-
     public Rigidbody projectile;
     public float speedshooter = 100;
-
     public AudioSource tiro;
+    public static int vidas;
+    public Text txtVida;
+    public RectTransform imgVida;
 
     void Start()
     {
+        vidas = 10;
         //som do tiro
-        //tiro = GetComponents<AudioSource>()[0];
+        tiro = GetComponents<AudioSource>()[0];
 
         cameraFPS = GetComponentInChildren(typeof(Camera)).transform.gameObject;
         cameraFPS.transform.localPosition = new Vector3(0,1,0);
@@ -38,6 +41,9 @@ public class Controller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        txtVida.text = "Vidas: " + vidas;
+        imgVida.sizeDelta = new Vector2 ( 197 * vidas / 100, 19.2f);
+
         //apenas movimenta o jogador se ele estiver no chão
         if (controller.isGrounded) {
             //pega a direção da face à frente da camera
@@ -74,7 +80,7 @@ public class Controller : MonoBehaviour
                 Rigidbody hitPlayer;
                 hitPlayer = Instantiate(projectile, cameraFPS.transform.position, cameraFPS.transform.rotation) as Rigidbody;
                 hitPlayer.velocity = cameraFPS.transform.TransformDirection(Vector3.forward * speedshooter);
-                //tiro.Play();
+                tiro.Play();
             }
         }
 
@@ -111,5 +117,15 @@ public class Controller : MonoBehaviour
             angulo -= 360;
         }
         return Mathf.Clamp(angulo, min, max);
+    }
+
+    void OnTriggerEnter(Collider other){
+        // detecta colisão
+        if(other.gameObject.CompareTag("portal")){
+            SceneManager.LoadScene("Fase 2");
+        }
+        if(other.gameObject.CompareTag("portal2")){
+            SceneManager.LoadScene("Vitoria");
+        }
     }
 }
